@@ -6,16 +6,16 @@ import org.openjdk.jmh.annotations._
 class BenchmarkState:
   val bigList: List[Int] = (1 to 1000).toList
 
-class ListBenchmarks:
+class ListBenchmark:
 
   @Benchmark
-  def prependList(state: BenchmarkState) = (1 to 100).foldLeft(state.bigList)((acc, i) => i :: acc)
+  def prependList(state: BenchmarkState) = 0 :: state.bigList
 
   @Benchmark
-  def prependSeq(state: BenchmarkState) = (1 to 100).foldLeft(state.bigList)((acc, i) => i +: acc)
+  def prependSeq(state: BenchmarkState) = 0 +: state.bigList
 
   @Benchmark
-  def appendSeq(state: BenchmarkState) = (1 to 100).foldLeft(state.bigList)((acc, i) => acc :+ i)
+  def appendSeq(state: BenchmarkState) = state.bigList :+ 0
 
   @Benchmark
   def concatList(state: BenchmarkState) = state.bigList ::: state.bigList
