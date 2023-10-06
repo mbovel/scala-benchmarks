@@ -5,8 +5,8 @@ enablePlugins(JmhPlugin)
 lazy val root = project
   .in(file("."))
   .settings(
-    name := "list-benchmarks",
-    version := "0.1.0-SNAPSHOT",
+    name := "scala-benchmarks",
+    version := "0.2.0-SNAPSHOT",
 
     scalaVersion := scala3Version,
 
