@@ -75,9 +75,9 @@ object ListMergeSort:
         merge(s1, s2)
 end ListMergeSort
 
-object VectorMergeSort:
+object SeqMergeSort:
   @scala.annotation.tailrec
-  def merge[T](acc: Vector[T], xs: Vector[T], ys: Vector[T])(using ord: Ordering[T]): Vector[T] =
+  def merge[T](acc: Seq[T], xs: Seq[T], ys: Seq[T])(using ord: Ordering[T]): Seq[T] =
     if xs.isEmpty then acc ++ ys
     else if ys.isEmpty then acc ++ xs
     else
@@ -88,7 +88,7 @@ object VectorMergeSort:
       else
         merge(acc :+ y, xs, ys.tail)
 
-  def msort[T](xs: Vector[T])(using ord: Ordering[T]): Vector[T] =
+  def msort[T](xs: Seq[T])(using ord: Ordering[T]): Seq[T] =
     val n = xs.length / 2
     if n == 0 then xs
     else
@@ -98,4 +98,4 @@ object VectorMergeSort:
       else
         val (s1, s2) = parallel(() => msort(fst), () => msort(snd))
         merge(Vector(), s1, s2)
-end VectorMergeSort
+end SeqMergeSort
