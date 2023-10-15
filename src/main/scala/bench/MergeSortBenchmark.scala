@@ -52,7 +52,7 @@ inline def parallel[A](inline a: () => A, inline b: () => A): (A,A) =
   (two.head, two.tail.head)
  */
 
-type T = String
+type T = Int
 
 object ListMergeSort:
   def merge(xs: List[T], ys: List[T]): List[T] =
@@ -101,8 +101,10 @@ object VectorMergeSort:
 end VectorMergeSort
 
 @State(Scope.Benchmark)
+@Fork(1, jvmArgs = Array("-Xss10m"))
 class MergeSortBenchmark:
-  val lst: List[T] = (15000 to 1 by -3).toList.map(n => f"${n}%5d")
+  util.Random.setSeed(451L)
+  val lst: List[T] = List.fill(5000)(util.Random.nextInt())
   val vec: Vector[T] = lst.toVector
 
   @Benchmark
