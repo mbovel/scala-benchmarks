@@ -17,7 +17,13 @@ class MergeSortBenchmark:
   val vec: Vector[Int] = lst.toVector
 
   @Benchmark
-  def list = mergeSort(lst)
+  def list = ListMergeSort.msort(lst)
 
   @Benchmark
-  def vector = mergeSort(vec)
+  def vector = VectorMergeSort.msort(vec)
+
+  @Benchmark
+  def listBaseline = lst.sorted 
+
+  @Benchmark
+  def vectorBaseline = vec.sorted

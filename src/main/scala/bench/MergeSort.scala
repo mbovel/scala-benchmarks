@@ -8,10 +8,9 @@ import java.util.concurrent.*
 import scala.util.DynamicVariable
 
 import org.openjdk.jmh.annotations.*
+import scala.annotation.tailrec
 
 val forkJoinPool = ForkJoinPool()
-
-val cutoff = 2000
 
 abstract class TaskScheduler:
   def schedule[T](body: => T): ForkJoinTask[T]
@@ -52,16 +51,51 @@ inline def parallel[A](inline a: () => A, inline b: () => A): (A,A) =
   (two.head, two.tail.head)
  */
 
-def mergeSort[A](list: Seq[A])(using ord: Ordering[A]): Seq[A] =
-  def merge(l: Seq[A], r: Seq[A]): Seq[A] =
-    if l.isEmpty then r
-    else if r.isEmpty then l
-    else if ord.lt(l.head, r.head) then
-      l.head +: merge(l.tail, r)
-    else
-      r.head +: merge(l, r.tail)
+val cutoff = 2000
 
-  if list.length <= 1 then list
-  else
-    val (left, right) = list.splitAt(list.length / 2)
-    merge(mergeSort(left), mergeSort(right))
+
+object ListMergeSort:
+  def merge[T](xs: List[T], ys: List[T])(using ord: Ordering[T]): List[T] =
+    (xs, ys) match
+      case (Nil, ys) => ys
+      case (xs, Nil) => xs
+      case (x :: xs1, y :: ys1) =>
+        if ord.lt(x, y) then x :: merge(xs1, ys)
+        else y :: merge(xs, ys1)
+
+  def msort[T](xs: List[T])(using ord: Ordering[T]): List[T] =
+    val n = xs.length / 2
+    if n == 0 then xs
+    else
+      val (fst, snd) = xs.splitAt(n)
+      if n < cutoff then
+        merge(msort(fst), msort(snd))
+      else
+        val (s1, s2) = parallel(() => msort(fst), () => msort(snd))
+        merge(s1, s2)
+end ListMergeSort
+
+object VectorMergeSort:
+  @scala.annotation.tailrec
+  def merge[T](acc: Vector[T], xs: Vector[T], ys: Vector[T])(using ord: Ordering[T]): Vector[T] =
+    if xs.isEmpty then acc ++ ys
+    else if ys.isEmpty then acc ++ xs
+    else
+      val x = xs.head
+      val y = ys.head
+      if ord.lt(x, y) then
+        merge(acc :+ x, xs.tail, ys)
+      else
+        merge(acc :+ y, xs, ys.tail)
+
+  def msort[T](xs: Vector[T])(using ord: Ordering[T]): Vector[T] =
+    val n = xs.length / 2
+    if n == 0 then xs
+    else
+      val (fst, snd) = xs.splitAt(n)
+      if n < cutoff then
+        merge(Vector(), msort(fst), msort(snd))
+      else
+        val (s1, s2) = parallel(() => msort(fst), () => msort(snd))
+        merge(Vector(), s1, s2)
+end VectorMergeSort
