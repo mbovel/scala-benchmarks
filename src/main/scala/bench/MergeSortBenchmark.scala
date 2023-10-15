@@ -102,7 +102,7 @@ end VectorMergeSort
 
 @State(Scope.Benchmark)
 class MergeSortBenchmark:
-  val lst: List[T] = (15000 to 1 by -3).toList.map(n => f"${n}%300d")
+  val lst: List[T] = (15000 to 1 by -3).toList.map(n => f"${n}%5d")
   val vec: Vector[T] = lst.toVector
 
   @Benchmark
