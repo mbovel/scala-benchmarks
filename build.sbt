@@ -9,6 +9,7 @@ lazy val root = project
     version := "0.2.0-SNAPSHOT",
 
     scalaVersion := scala3Version,
-
+    scalacOptions := Seq("-deprecation"),
     libraryDependencies += "org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.4",
+    libraryDependencies += "org.scalameta" %% "munit" % "1.0.0-M10" % Test,
   )

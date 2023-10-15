@@ -9,6 +9,7 @@ import scala.util.DynamicVariable
 
 import org.openjdk.jmh.annotations.*
 import scala.annotation.tailrec
+import scala.reflect.ClassTag
 
 val forkJoinPool = ForkJoinPool()
 
@@ -52,7 +53,6 @@ inline def parallel[A](inline a: () => A, inline b: () => A): (A,A) =
  */
 
 val cutoff = 2000
-
 
 object ListMergeSort:
   def merge[T](xs: List[T], ys: List[T])(using ord: Ordering[T]): List[T] =
@@ -99,3 +99,43 @@ object SeqMergeSort:
         val (s1, s2) = parallel(() => msort(fst), () => msort(snd))
         merge(Vector(), s1, s2)
 end SeqMergeSort
+
+object MutMergeSort:
+  @tailrec
+  def merge[T: ClassTag](
+      src: Array[T],
+      src1Start: Int,
+      src1End: Int,
+      src2Start: Int,
+      src2End: Int,
+      dst: Array[T],
+      dstStart: Int
+  )(using ord: Ordering[T]): Unit =
+    if src1Start < src1End then
+      if src2Start < src2End then
+        if ord.lt(src(src1Start), src(src2Start)) then
+          dst(dstStart) = src(src1Start)
+          merge(src, src1Start + 1, src1End, src2Start, src2End, dst, dstStart + 1)
+        else
+          dst(dstStart) = src(src2Start)
+          merge(src, src1Start, src1End, src2Start + 1, src2End, dst, dstStart + 1)
+      else
+        System.arraycopy(src, src1Start, dst, dstStart, src1End - src1Start)
+    else
+      System.arraycopy(src, src2Start, dst, dstStart, src2End - src2Start)
+
+  def msort[T: ClassTag](xs: IArray[T], par: (=> Unit, => Unit) => Unit)(using
+      ord: Ordering[T]
+  ): IArray[T] =
+    def sort(src: Array[T], dst: Array[T], from: Int, until: Int, depth: Int): Unit =
+      if until - from > 1 then
+        val mid = (from + until) / 2
+        par(sort(dst, src, from, mid, depth + 1), sort(dst, src, mid, until, depth + 1))
+        merge(src, from, mid, mid, until, dst, from)
+      else ()
+
+    val tmp1 = Array.from(xs)
+    val tmp2 = Array.from(xs)
+    sort(tmp1, tmp2, 0, xs.length, 0)
+    IArray.from(tmp2)
+end MutMergeSort
